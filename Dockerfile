@@ -1,10 +1,24 @@
 # Java 21 Runtime (recommended)
-FROM eclipse-temurin:21-jre-jammy
+# FROM eclipse-temurin:21-jre-jammy
 
+# WORKDIR /app
+
+# COPY target/edu-0.0.1-SNAPSHOT.jar app.jar
+
+# EXPOSE 8080
+
+# ENTRYPOINT ["java", "-jar", "app.jar"]
+# -------- BUILD STAGE --------
+FROM eclipse-temurin:21-jdk-jammy AS build
 WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN ./mvnw clean package -DskipTests || mvn clean package -DskipTests
 
-COPY target/edu-0.0.1-SNAPSHOT.jar app.jar
-
+# -------- RUNTIME STAGE --------
+FROM eclipse-temurin:21-jre-jammy
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
+ENTRYPOINT ["java","-jar","app.jar"]
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
